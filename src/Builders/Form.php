@@ -2,11 +2,17 @@
 
 declare(strict_types = 1);
 
-namespace Lizy\Builders;
+namespace Lyzi\Builders;
 
-use Lizy\Traits\HasBuilder;
+use Lyzi\Traits\HasBuilder;
 
 final class Form
 {
     use HasBuilder;
+
+
+    public function getForm()
+    {
+
+    }
 }

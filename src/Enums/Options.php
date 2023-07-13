@@ -4,5 +4,6 @@ declare(strict_types = 1);
 
 final class Options
 {
-    public const WEBHOOK = 'LIZY_WEBHOOK_ADDRESS';
+    public const WEBHOOK = 'LYZI_WEBHOOK_ADDRESS';
+    public const FORM_ID = 'LYZI_FORM_ID';
 }

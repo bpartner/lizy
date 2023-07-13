@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Lizy\Traits;
+namespace Lyzi\Traits;
 
 trait HasBuilder
 {
