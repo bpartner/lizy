@@ -6,7 +6,7 @@ namespace Lyzi\Install;
 
 use Configuration;
 use Context;
-use Options;
+use Lyzi\Enums\Options;
 use PaymentModule;
 
 final class Installer
@@ -32,21 +32,20 @@ final class Installer
 
     public function install()
     {
-        return $this->paymentModule->registerHook($this->hooks)
-               && !Configuration::updateValue(
-                Options::WEBHOOK,
-                Context::getContext()->link->getModuleLink(
-                    'lyzi',
-                    'webhook',
-                    [],
-                    true
-                )
-            );
+        return Configuration::updateValue(
+            Options::WEBHOOK,
+            Context::getContext()->link->getModuleLink(
+                'lyzi',
+                'paymentok',
+                [],
+                true
+            )
+        ) && $this->paymentModule->registerHook($this->hooks);
     }
 
     public function uninstall()
     {
-        return !Configuration::deleteByName(Options::FORM_ID)
-               && !Configuration::deleteByName(Options::WEBHOOK);
+        return Configuration::deleteByName(Options::FORM_ID)
+               && Configuration::deleteByName(Options::WEBHOOK);
     }
 }

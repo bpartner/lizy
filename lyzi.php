@@ -22,6 +22,7 @@ declare(strict_types = 1);
 
 
 use Lyzi\Builders\Config;
+use Lyzi\Enums\Options;
 use Lyzi\Install\Installer;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
@@ -48,7 +49,7 @@ final class Lyzi extends PaymentModule
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
             'min' => '1.7.0.0',
-            'max' => '8.99.99',
+            'max' => '9.99.99',
         ];
         $this->bootstrap = true;
         $this->controllers = [
@@ -89,16 +90,80 @@ final class Lyzi extends PaymentModule
      */
     public function getContent()
     {
-        $builder = Config::make()->setup($this);
-
         if (Tools::isSubmit('submit' . $this->name)) {
-            $builder->store();
+            $this->saveConfiguration();
             $this->context->smarty->assign('confirmation', $this->displayConfirmation('Settings updated'));
         }
 
-        $str = $this->context->link->getModuleLink('lyzi', 'webhook', [], true);
-        $this->context->smarty->assign('webhook_endpoint', $str);
-        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+        $this->context->smarty->assign('webhook_endpoint', Configuration::get(Options::WEBHOOK, 0));
+        $output = $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+
+        return $output . $this->renderForm();
+    }
+
+    protected function renderForm()
+    {
+        $helper = new HelperForm();
+
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $helper->module = $this;
+        $helper->default_form_language = $this->context->language->id;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submit' . $this->name;
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+                                . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+
+        $helper->tpl_vars = [
+            'fields_value' => $this->getConfigFormValues(),
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id,
+        ];
+
+        return $helper->generateForm([$this->getConfigForm()]);
+    }
+
+    protected function getConfigForm()
+    {
+        return [
+            'form' => [
+                'legend' => [
+                    'title' => 'Settings',
+                    'icon' => 'icon-cogs',
+                ],
+                'input' => [
+                    [
+                        'col' => 8,
+                        'type' => 'text',
+                        'name' => Options::BUTTON_ID,
+                        'label' => 'Button ID',
+                        'desc' => 'Please enter your Button ID. You can find it in your <a>Lyzi</a> settings page.',
+                    ]
+                ],
+                'submit' => [
+                    'title' => 'Save',
+                ],
+            ],
+        ];
+    }
+
+    protected function getConfigFormValues()
+    {
+        return [Options::BUTTON_ID => Configuration::get(Options::BUTTON_ID, null)];
+    }
+
+    protected function saveConfiguration()
+    {
+        $values = $this->getConfigFormValues();
+
+        foreach (array_keys($values) as $key) {
+            Configuration::updateValue($key, Tools::getValue($key));
+        }
+
+        $this->context->smarty->assign('confirmation', $this->displayConfirmation('Settings updated'));
     }
 
     public function hookPaymentOptions(array $params)
@@ -110,24 +175,14 @@ final class Lyzi extends PaymentModule
             return [];
         }
 
-        $externalOption = new PaymentOption();
-        $externalOption->setModuleName($this->name);
-        $externalOption->setCallToActionText($this->l('Lyzi payment'));
-        $externalOption->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true));
-        $externalOption->setInputs([
-            'token' => [
-                'name' => 'token',
-                'type' => 'hidden',
-                'value' => '[5cbfniD+(gEV<59lYbG/,3VmHiE<U46;#G9*#NP#X.FA§]sb%ZG?5Q{xQ4#VM|7',
-            ],
-        ]);
-        $str = $this->context->link->getModuleLink('lyzi', 'webhook', [], true);
-        $this->context->smarty->assign('webhook_endpoint', $str);
-        $externalOption->setAdditionalInformation($this->context->smarty->fetch('module:lyzi/views/templates/front/payment.tpl'));
-        //$externalOption->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/option/external
-        //.png'));
+        $paymentOption = new PaymentOption();
+        $paymentOption->setModuleName($this->name);
+        $paymentOption->setCallToActionText($this->l('Pay by Crypto with Lyzi Payment'));
 
-        return [$externalOption];
+        $paymentOption->setAction($this->context->link->getModuleLink($this->name, 'paymentmethod', [], true));
+        $paymentOption->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/logo.webp'));
+
+        return [$paymentOption];
     }
 
     private function checkCurrency(Cart $cart)

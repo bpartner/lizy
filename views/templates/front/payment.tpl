@@ -1,25 +1,61 @@
 {extends "$layout"}
 
 {block name="content"}
-<script src="https://admin.lyzi.fr/assets/buy-button/sdk.js" defer></script>
-<a id="test-lyzi">Payer</a>
-<script>
-    window.lyziBuyButton.init({
-        buttonId: '640539aba7ab8755cace1edf',
-        orderRef: 'CURRENTORDER-FP-2022101001',
-        price: 0.1,
-        callbackUrl: 'https://webhook.site/1f17c789-f035-4d72-8f9e-2cf2908d5a2e',
-        env: 'local',
+  <a id="lyzi-payment">Payer</a>
+  <script>
+    let intervalCheckId;
+    let transactionId = undefined;
+
+    window.onload = function () {
+      window.lyziBuyButton.init({
+        buttonId: '{$buttonId}',
+        orderRef: 'CURRENTORDER-LZ-{$orderId}',
+        price: {$price},
+        callbackUrl: '{$callbackUrl nofilter}',
         goods: {
-            goodsName: 'yolo good',
-            goodsCategory: '1000',
-            goodsType: '01'
+          goodsName: 'products',
+          goodsType: '01',
+          goodsCategory: 'Z000',
         }
-    }, document.getElementById('test-lyzi'));
-</script>
+      }, document.getElementById('lyzi-payment'));
+
+      startInterval();
+    };
+
+
+    function startInterval () {
+      intervalCheckId = setInterval(checkTransactionId, 2000);
+    }
+
+    function checkTransactionId() {
+      let tsId = window.lyziBuyButton.getTransactionCode();
+      if (tsId !== undefined && tsId !== transactionId) {
+        transactionId = tsId;
+        let params = {
+          transactionId: tsId,
+          orderId: '{$orderId}'
+        };
+
+        sendPostRequest('{$setTransactionCallback nofilter}', params)
+      }
+    }
+
+
+    function sendPostRequest(url, parameters) {
+      let xhr = new XMLHttpRequest();
+
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            //success
+          }
+        }
+      };
+
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      let jsonData = JSON.stringify(parameters);
+      xhr.send(jsonData);
+    }
+  </script>
 {/block}
-
-
-
-
-</html>

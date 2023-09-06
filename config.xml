@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-    <name>lizy</name>
-    <displayName><![CDATA[Lizy Payment]]></displayName>
+    <name>lyzi</name>
+    <displayName><![CDATA[Lyzi Payment]]></displayName>
     <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Make payment with Lizy.io]]></description>
-    <author><![CDATA[Lizy.io]]></author>
+    <description><![CDATA[Make payment with Lyzi.io]]></description>
+    <author><![CDATA[Lyzi.io]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
     <is_configurable>1</is_configurable>
-    <need_instance>1</need_instance>
-	<limited_countries></limited_countries>
+    <need_instance>0</need_instance>
 </module>

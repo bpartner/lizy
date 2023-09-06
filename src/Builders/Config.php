@@ -6,8 +6,8 @@ namespace Lyzi\Builders;
 
 use Configuration;
 use Lyzi;
+use Lyzi\Enums\Options;
 use Lyzi\Traits\HasBuilder;
-use Options;
 use Tools;
 
 final class Config

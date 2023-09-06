@@ -39,7 +39,6 @@
 					<input type="text" name="LIZY_WEBHOOK_ADDRESS" id="LIZY_WEBHOOK_ADDRESS"
 						   value="{$webhook_endpoint|escape:'html':'UTF-8'}" readonly />
 					<p class="help-block">
-						Please copy this URL and use it to create a new WebHook in your Lizy button form settings.
 					</p>
 				</div>
 			</div>
